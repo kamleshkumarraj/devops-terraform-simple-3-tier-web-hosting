@@ -6,4 +6,11 @@ locals {
       "name" = "${var.frontend_lt_name}"
     }
   )
+
+  ft_asg_tsg = merge(
+    local.commonTags,
+    {
+      "name" = "${var.asg_name}"
+    }
+  )
 }

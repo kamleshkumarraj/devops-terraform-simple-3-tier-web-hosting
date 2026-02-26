@@ -26,7 +26,44 @@ variable "frontend_lt_key_name" {
 }
 
 variable "frontend_sg" {
-  type = string
-  default = ""
+    type = string
+    description = "The security group ID for the frontend auto scaling group"
 }
+
+// now we define all asg related varibale.
+variable "asg_name" {
+  type = string
+  default = "ecommerce-frontend-asg"
+}
+
+variable "min_size" {
+  type = number
+  default = 1
+}
+
+variable "max_size" {
+  type = number
+  default = 3
+}
+
+variable "desired_capacity" {
+  type = number
+  default = 0
+}
+
+variable "health_check_gp" {
+  type = number
+  default = 300
+}
+
+variable "health_check_type" {
+  type = string
+  default = "ELB"
+}
+
+variable "asg_subnet" {
+  type = list(string)
+  description = ""
+}
+
 
