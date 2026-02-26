@@ -3,7 +3,7 @@ locals {
   ft_launch_template_tags = merge(
     local.commonTags,
     {
-      "name" = "ft-launch-template"
+      "name" = "${var.frontend_lt_name}"
     }
   )
 }

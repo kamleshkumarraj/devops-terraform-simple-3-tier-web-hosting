@@ -84,56 +84,68 @@ resource "aws_security_group" "ec2_sg_database" {
   tags = local.db_server_sg_tags
 }
 
-resource "aws_instance" "frontend_web_server" {
-  count                       = 2
-  ami                         = var.ami_id
-  instance_type               = var.frontend_instance_type
-  key_name                    = var.key_name
-  subnet_id                   = var.subnet_id[count.index]
-  associate_public_ip_address = var.associate_public_ip_address
-  vpc_security_group_ids      = [aws_security_group.ec2_sg_frontend.id]
-
-  tags = merge(var.common_tags, {
-    Name = "${var.frontend_instance_name}-${count.index + 1}"
-  })
-
-  
+output "frontend_sg_id" {
+  value = aws_security_group.ec2_sg_frontend.id
 }
 
-resource "aws_instance" "backend_web_server" {
-  count                       = 2
-  ami                         = var.ami_id
-  instance_type               = var.backend_instance_type
-  key_name                    = var.key_name
-  subnet_id                   = var.subnet_id[count.index]
-  associate_public_ip_address = var.associate_public_ip_address
-  vpc_security_group_ids      = [aws_security_group.ec2_sg_backend.id]
-
-  tags = merge(var.common_tags, {
-    Name = "${var.backend_instance_name}-${count.index + 1}"
-  })
-
-  
+output "backend_sg_id" {
+  value = aws_security_group.ec2_sg_backend.id
 }
 
-resource "aws_instance" "database_server" {
-  count = 1
-  ami                         = var.ami_id
-  instance_type               = var.db_instance_type
-  key_name                    = var.key_name
-  subnet_id                   = var.subnet_id[0]
-  associate_public_ip_address = var.associate_public_ip_address
-  vpc_security_group_ids      = [aws_security_group.ec2_sg_database.id]
-
-  tags = merge(var.common_tags, {
-    Name = "${var.db_instance_name}-1"
-   })
-  
-  root_block_device {
-    volume_size           = var.db_storage_size
-    volume_type           = "gp3"
-    encrypted             = true
-    delete_on_termination = var.db_instance_storage_protection
-  }
+output "database_sg_id" {
+  value = aws_security_group.ec2_sg_database.id
 }
+
+# resource "aws_instance" "frontend_web_server" {
+#   count                       = 2
+#   ami                         = var.ami_id
+#   instance_type               = var.frontend_instance_type
+#   key_name                    = var.key_name
+#   subnet_id                   = var.subnet_id[count.index]
+#   associate_public_ip_address = var.associate_public_ip_address
+#   vpc_security_group_ids      = [aws_security_group.ec2_sg_frontend.id]
+
+#   tags = merge(var.common_tags, {
+#     Name = "${var.frontend_instance_name}-${count.index + 1}"
+#   })
+
+  
+# }
+
+# resource "aws_instance" "backend_web_server" {
+#   count                       = 2
+#   ami                         = var.ami_id
+#   instance_type               = var.backend_instance_type
+#   key_name                    = var.key_name
+#   subnet_id                   = var.subnet_id[count.index]
+#   associate_public_ip_address = var.associate_public_ip_address
+#   vpc_security_group_ids      = [aws_security_group.ec2_sg_backend.id]
+
+#   tags = merge(var.common_tags, {
+#     Name = "${var.backend_instance_name}-${count.index + 1}"
+#   })
+
+  
+# }
+
+# resource "aws_instance" "database_server" {
+#   count = 1
+#   ami                         = var.ami_id
+#   instance_type               = var.db_instance_type
+#   key_name                    = var.key_name
+#   subnet_id                   = var.subnet_id[0]
+#   associate_public_ip_address = var.associate_public_ip_address
+#   vpc_security_group_ids      = [aws_security_group.ec2_sg_database.id]
+
+#   tags = merge(var.common_tags, {
+#     Name = "${var.db_instance_name}-1"
+#    })
+  
+#   root_block_device {
+#     volume_size           = var.db_storage_size
+#     volume_type           = "gp3"
+#     encrypted             = true
+#     delete_on_termination = var.db_instance_storage_protection
+#   }
+# }
 
