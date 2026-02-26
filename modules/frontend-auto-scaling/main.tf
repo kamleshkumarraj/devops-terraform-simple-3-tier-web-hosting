@@ -109,6 +109,10 @@ resource "aws_autoscaling_group" "ecommerce_frontend_asg" {
     max_healthy_percentage = 200
   }
 
+  target_group_arns = [
+    var.frontend_tg_arn
+  ]
+
   # initial_lifecycle_hook {
   #   name                 = "foobar"
   #   default_result       = "CONTINUE"

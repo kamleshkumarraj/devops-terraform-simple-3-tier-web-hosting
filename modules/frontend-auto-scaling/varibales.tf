@@ -67,3 +67,7 @@ variable "asg_subnet" {
 }
 
 
+variable "frontend_tg_arn" {
+  type = string
+}
+
