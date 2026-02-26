@@ -135,6 +135,10 @@ resource "aws_autoscaling_group" "ecommerce_backend_asg" {
   #   delete = "15m"
   # }
 
+  target_group_arns = [
+    var.backend_tg_arn
+  ]
+
   
   tag {
     key                 = "Name"

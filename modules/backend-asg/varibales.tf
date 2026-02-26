@@ -66,4 +66,8 @@ variable "asg_subnet" {
   description = ""
 }
 
+variable "backend_tg_arn" {
+  type = string
+  description = "The ARN of the backend target group"
+}
 

@@ -19,6 +19,14 @@ module "ec2" {
   cidr_range_vpc = var.cidr_range_vpc
 }
 
+module "alb" {
+  source = "./modules/alb"
+  common_tags = var.common_tags
+  alb_subnet = module.vpc.public_subnet_id
+  vpc_id = module.vpc.vpc_id
+
+}
+
 
 module "frontend-auto-scaling" {
   source = "./modules/frontend-auto-scaling"
@@ -29,7 +37,9 @@ module "frontend-auto-scaling" {
   frontend_sg = module.ec2.frontend_sg_id
   asg_subnet = module.vpc.private_subnet_id
   frontend_lt_ami_id = var.frontend_lt_ami_id
+  frontend_tg_arn = module.alb.frontend_tg_arn
 
+  depends_on = [ module.alb ]
 }
 
 
@@ -43,6 +53,8 @@ module "backend-auto-scaling" {
   backend_sg = module.ec2.backend_sg_id
   asg_subnet = module.vpc.private_subnet_id
   backend_lt_ami_id = var.backend_lt_ami_id
+  backend_tg_arn = module.alb.backend_tg_arn
 
+  depends_on = [ module.alb ]
 }
 
