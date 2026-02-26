@@ -9,7 +9,7 @@ variable "backend_lt_name" {
   default = "ecommerce-backend-lt"
 }
 
-variable "fronetnd_lt_ami_id" {
+variable "backend_lt_ami_id" {
   type = string
   description = "The AMI ID to be used for the backend launch template"
 }

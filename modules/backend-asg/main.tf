@@ -1,6 +1,6 @@
 // we create first launch template.
 
-resource "aws_launch_template" "ecommerce_fronetend_lt" {
+resource "aws_launch_template" "ecommerce_backend_lt" {
   name = var.backend_lt_name
 
   block_device_mappings {
@@ -31,17 +31,17 @@ resource "aws_launch_template" "ecommerce_fronetend_lt" {
 
   ebs_optimized = true
 
-  iam_instance_profile {
-    name = "test"
-  }
+  # iam_instance_profile {
+  #   name = "test"
+  # }
 
-  image_id = var.fronetnd_lt_ami_id
+  image_id = var.backend_lt_ami_id
 
   instance_initiated_shutdown_behavior = "terminate"
 
-  instance_market_options {
-    market_type = "on_demand"
-  }
+  # instance_market_options {
+  #   market_type = "capacity-block"
+  # }
 
   instance_type = var.backend_lt_instance_type
 
@@ -84,10 +84,12 @@ resource "aws_launch_template" "ecommerce_fronetend_lt" {
 
 // now we cretae auto scaling group for backend.
 
-resource "aws_placement_group" "test" {
-  name     = "test"
-  strategy = "cluster"
-}
+# resource "aws_placement_group" "backend_asg_placement_group" {
+#   name     = "backend-asg-placement-group"
+#   strategy = "cluster"
+# }
+
+
 
 resource "aws_autoscaling_group" "ecommerce_backend_asg" {
   name                      = var.asg_name
@@ -97,9 +99,9 @@ resource "aws_autoscaling_group" "ecommerce_backend_asg" {
   health_check_type         = var.health_check_type
   desired_capacity          = var.desired_capacity
   force_delete              = true
-  placement_group           = aws_placement_group.test.id
+  # placement_group           = aws_placement_group.backend_asg_placement_group.id
   launch_template {
-  id      = aws_launch_template.ecommerce_fronetend_lt.id
+  id      = aws_launch_template.ecommerce_backend_lt.id
   version = "$Latest"
 }
   vpc_zone_identifier       = var.asg_subnet
@@ -157,11 +159,9 @@ resource "aws_autoscaling_policy" "cpu_target_tracking_policy" {
     disable_scale_in = false
   }
 
-  cooldown = 500
+  # cooldown = 500
 }
 
-
-// same metrics for memory utilization.
 resource "aws_autoscaling_policy" "memory_target_tracking_policy" {
   name                   = "memory-target-tracking-policy"
   autoscaling_group_name = aws_autoscaling_group.ecommerce_backend_asg.name
@@ -170,29 +170,52 @@ resource "aws_autoscaling_policy" "memory_target_tracking_policy" {
   target_tracking_configuration {
     target_value = 70
 
-    predefined_metric_specification {
-      predefined_metric_type = "ASGAverageMemoryUtilization"
+    customized_metric_specification {
+      metric_name = "mem_used_percent"
+      namespace   = "CWAgent"
+      statistic   = "Average"
+      unit        = "Percent"
+
+      # dimensions {
+      #   name  = "AutoScalingGroupName"
+      #   value = aws_autoscaling_group.ecommerce_backend_asg.name
+      # }
     }
+
     disable_scale_in = false
-    
   }
 
-  cooldown = 500
-
+  
 }
+
 
 // now we create schedule scaling policy for our asg to scale out at 9 am and scale in at 6 pm.
-resource "aws_autoscaling_schedule" "scale_out_schedule" {
-  scheduled_action_name  = "scale-out-schedule"
+resource "aws_autoscaling_schedule" "weekday_scale_out" {
+  scheduled_action_name  = "weekday-scale-out"
   autoscaling_group_name = aws_autoscaling_group.ecommerce_backend_asg.name
-  desired_capacity       = 2
-  start_time             = "2024-07-01T09:00:00Z"
+
+  min_size         = 1
+  max_size         = 5
+  desired_capacity = 1
+
+  recurrence = "0 8 * * MON-FRI"
+
+  start_time = "2026-02-27T00:00:00Z"
+
+  time_zone = "Asia/Kolkata"
 }
 
-resource "aws_autoscaling_schedule" "scale_in_schedule" {
-  scheduled_action_name  = "scale-in-schedule"
+resource "aws_autoscaling_schedule" "weekday_scale_in" {
+  scheduled_action_name  = "weekday-scale-in"
   autoscaling_group_name = aws_autoscaling_group.ecommerce_backend_asg.name
-  desired_capacity       = 1
-  start_time             = "2024-07-01T18:00:00Z"
-}
 
+  min_size         = 0
+  max_size         = 0
+  desired_capacity = 0
+
+  recurrence = "0 20 * * MON-FRI"
+
+  start_time = "2026-02-27T01:00:00Z"
+
+  time_zone = "Asia/Kolkata"
+}

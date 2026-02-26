@@ -128,24 +128,24 @@ output "database_sg_id" {
   
 # }
 
-# resource "aws_instance" "database_server" {
-#   count = 1
-#   ami                         = var.ami_id
-#   instance_type               = var.db_instance_type
-#   key_name                    = var.key_name
-#   subnet_id                   = var.subnet_id[0]
-#   associate_public_ip_address = var.associate_public_ip_address
-#   vpc_security_group_ids      = [aws_security_group.ec2_sg_database.id]
+resource "aws_instance" "database_server" {
+  count = 1
+  ami                         = var.ami_id
+  instance_type               = var.db_instance_type
+  key_name                    = var.key_name
+  subnet_id                   = var.subnet_id[0]
+  associate_public_ip_address = var.associate_public_ip_address
+  vpc_security_group_ids      = [aws_security_group.ec2_sg_database.id]
 
-#   tags = merge(var.common_tags, {
-#     Name = "${var.db_instance_name}-1"
-#    })
+  tags = merge(var.common_tags, {
+    Name = "${var.db_instance_name}-1"
+   })
   
-#   root_block_device {
-#     volume_size           = var.db_storage_size
-#     volume_type           = "gp3"
-#     encrypted             = true
-#     delete_on_termination = var.db_instance_storage_protection
-#   }
-# }
+  root_block_device {
+    volume_size           = var.db_storage_size
+    volume_type           = "gp3"
+    encrypted             = true
+    delete_on_termination = var.db_instance_storage_protection
+  }
+}
 

@@ -9,7 +9,7 @@ variable "frontend_lt_name" {
   default = "ecommerce-frontend-lt"
 }
 
-variable "fronetnd_lt_ami_id" {
+variable "frontend_lt_ami_id" {
   type = string
   description = "The AMI ID to be used for the frontend launch template"
 }
@@ -38,7 +38,7 @@ variable "asg_name" {
 
 variable "min_size" {
   type = number
-  default = 1
+  default = 0
 }
 
 variable "max_size" {

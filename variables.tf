@@ -56,3 +56,46 @@ variable "pem_file_path" {
   type = string
   description = "The path to the private key file for SSH access"
 }
+
+// common varibale for frontend auto launch template.
+variable "frontend_lt_name" {
+  type = string
+  description = "The name of the frontend launch template"
+}
+
+variable "frontend_lt_ami_id" {
+  type = string
+  description = "The AMI ID to be used for the frontend launch template"
+}
+
+variable "frontend_lt_instance_type" {
+  type = string
+  description = "The instance type for the frontend launch template"
+}
+
+variable "frontend_lt_key_name" {
+  type = string
+  description = "The key name to be used for the frontend launch template"
+}
+
+variable "backend_lt_name" {
+  type = string
+  description = "The name of the backend launch template"
+}
+
+variable "backend_lt_ami_id" {
+  type = string
+  description = "The AMI ID to be used for the backend launch template"
+}
+
+variable "backend_lt_instance_type" {
+  type = string
+  description = "The instance type for the backend launch template"
+}
+
+variable "backend_lt_key_name" {
+  type = string
+  description = "The key name to be used for the backend launch template"
+}
+
+
