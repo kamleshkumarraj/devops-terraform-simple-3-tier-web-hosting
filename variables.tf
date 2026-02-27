@@ -98,4 +98,13 @@ variable "backend_lt_key_name" {
   description = "The key name to be used for the backend launch template"
 }
 
+// arn related variables for iam module
+variable "s3_bucket_name" {
+  type = string
+  description = "S3 bucket for uploads"
+}
 
+variable "ecr_repository_arn" {
+  type = string
+  description = "ECR repository ARN" 
+}

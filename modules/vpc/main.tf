@@ -6,9 +6,7 @@ resource "aws_vpc" "ecommerce_vpc" {
   enable_dns_support   = true
   enable_dns_hostnames = true
 
-  tags = {
-    Name = "ecommerce-vpc"
-  }
+  tags = local.vpc-tags
 }
 
 # INTERNET GATEWAY
@@ -16,9 +14,7 @@ resource "aws_vpc" "ecommerce_vpc" {
 resource "aws_internet_gateway" "ecommerce_igw" {
   vpc_id = aws_vpc.ecommerce_vpc.id
 
-  tags = {
-    Name = "ecommerce-igw"
-  }
+  tags = local.igw-tags
 }
 
 # PUBLIC SUBNETS (1 PER AZ)
@@ -31,9 +27,7 @@ resource "aws_subnet" "public" {
   availability_zone       = var.availability_zones[count.index]
   map_public_ip_on_launch = true
 
-  tags = {
-    Name = "public-subnet-${count.index}"
-  }
+  tags = local.public-subnet-tags
 }
 
 # PRIVATE SUBNETS (1 PER AZ)
@@ -45,9 +39,7 @@ resource "aws_subnet" "private" {
   cidr_block        = cidrsubnet(var.cidr_block, 4, count.index + 2)
   availability_zone = var.availability_zones[count.index]
 
-  tags = {
-    Name = "private-subnet-${count.index}"
-  }
+  tags = local.private-subnet-tags
 }
 
 # PUBLIC ROUTE TABLE
@@ -55,9 +47,7 @@ resource "aws_subnet" "private" {
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.ecommerce_vpc.id
 
-  tags = {
-    Name = "public-rt"
-  }
+  tags = local.public-route-table-tags
 }
 
 # Internet Route
@@ -81,9 +71,7 @@ resource "aws_eip" "nat" {
   count  = length(var.availability_zones)
   domain = "vpc"
 
-  tags = {
-    Name = "nat-eip-${count.index}"
-  }
+  tags = local.nat-eip-tags
 }
 
 # NAT GATEWAY (1 PER AZ)
@@ -94,9 +82,7 @@ resource "aws_nat_gateway" "nat" {
   allocation_id = aws_eip.nat[count.index].id
   subnet_id     = aws_subnet.public[count.index].id
 
-  tags = {
-    Name = "nat-${count.index}"
-  }
+  tags = local.nat-gateway-tags
 }
 
 # PRIVATE ROUTE TABLES (1 PER AZ)
@@ -105,9 +91,7 @@ resource "aws_route_table" "private" {
   count  = length(var.availability_zones)
   vpc_id = aws_vpc.ecommerce_vpc.id
 
-  tags = {
-    Name = "private-rt-${count.index}"
-  }
+  tags = local.private-route-table-tags
 }
 
 # Route private traffic via NAT in same AZ
@@ -132,9 +116,9 @@ output "vpc_id" {
 }
 
 output "public_subnet_id" {
-  value = aws_subnet.ecommerce_public_subnet.*.id
+  value = aws_subnet.public.*.id
 }
 
 output "private_subnet_id" {
-  value = aws_subnet.ecommerce_private_subnet.*.id
+  value = aws_subnet.private.*.id
 }

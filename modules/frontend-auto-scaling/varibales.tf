@@ -71,3 +71,7 @@ variable "frontend_tg_arn" {
   type = string
 }
 
+variable "frontend_ec2_role_name" {
+  
+}
+

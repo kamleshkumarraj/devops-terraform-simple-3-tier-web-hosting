@@ -1,3 +1,10 @@
+module "iam" {
+  source = "./modules/iam"
+  s3_bucket_name = var.s3_bucket_name
+  ecr_repository_arn = var.ecr_repository_arn
+  common_tags = var.common_tags
+}
+
 module "vpc" {
   source = "./modules/vpc"
   availability_zones = var.availability_zones
@@ -38,7 +45,7 @@ module "frontend-auto-scaling" {
   asg_subnet = module.vpc.private_subnet_id
   frontend_lt_ami_id = var.frontend_lt_ami_id
   frontend_tg_arn = module.alb.frontend_tg_arn
-
+  frontend_ec2_role_name = module.iam.frontend_ec2_access_ecr_role
   depends_on = [ module.alb ]
 }
 

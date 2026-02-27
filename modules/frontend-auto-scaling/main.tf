@@ -31,9 +31,9 @@ resource "aws_launch_template" "ecommerce_frontend_lt" {
 
   ebs_optimized = true
 
-  # iam_instance_profile {
-  #   name = "test"
-  # }
+  iam_instance_profile {
+    name = var.frontend_ec2_role_name
+  }
 
   image_id = var.frontend_lt_ami_id
 

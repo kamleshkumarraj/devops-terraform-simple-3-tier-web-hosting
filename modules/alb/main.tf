@@ -41,7 +41,7 @@ resource "aws_lb" "ecommerce_alb" {
   security_groups    = [aws_security_group.ecommerce_alb_sg.id]
   subnets            = [for subnet in var.alb_subnet: subnet]
 
-  enable_deletion_protection = true
+  enable_deletion_protection = false
 
   # access_logs {
   #   bucket  = aws_s3_bucket.lb_logs.id
