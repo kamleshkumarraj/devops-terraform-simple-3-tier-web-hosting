@@ -68,7 +68,7 @@ resource "aws_lb_target_group" "frontend_tg" {
 resource "aws_lb_target_group" "backend_tg" {
   name     = "backend-tg"
   port     = 8000
-  protocol = "TCP"
+  protocol = "HTTP"
   vpc_id   = var.vpc_id
 
   target_health_state {
@@ -85,6 +85,7 @@ resource "aws_lb_listener" "ecommerce-listener-http" {
     type             = "forward"
     target_group_arn = aws_lb_target_group.frontend_tg.arn
   }
+  depends_on = [ aws_lb.ecommerce_alb, aws_lb_target_group.frontend_tg ]
 }
 
 
@@ -101,7 +102,7 @@ resource "aws_lb_listener_rule" "frontend_rule" {
 
   condition {
     host_header {
-      values = ["ecommerce.viharfood.in"]
+      values = ["viharfood.in"]
     }
   }
   depends_on = [ aws_lb_target_group.frontend_tg ]

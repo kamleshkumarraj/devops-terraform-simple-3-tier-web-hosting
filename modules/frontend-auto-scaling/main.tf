@@ -205,7 +205,7 @@ resource "aws_autoscaling_schedule" "weekday_scale_out" {
 
   recurrence = "0 8 * * MON-FRI"
 
-  start_time = "2026-02-27T00:00:00Z"
+  start_time = "2026-02-28T00:00:00Z"
 
   time_zone = "Asia/Kolkata"
 }
@@ -220,7 +220,7 @@ resource "aws_autoscaling_schedule" "weekday_scale_in" {
 
   recurrence = "0 20 * * MON-FRI"
 
-  start_time = "2026-02-27T01:00:00Z"
+  start_time = "2026-02-28T01:00:00Z"
 
   time_zone = "Asia/Kolkata"
 }

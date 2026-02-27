@@ -1,105 +1,130 @@
-// we setup a full ec2 instance with all the necessary resources and configurations using terraform. This includes security groups, key pairs, and user data scripts for initialization.
 
-// first we create vpc.
+# VPC
+
 resource "aws_vpc" "ecommerce_vpc" {
-  cidr_block       = var.cidr_block
-  instance_tenancy = "default"
+  cidr_block           = var.cidr_block
+  enable_dns_support   = true
+  enable_dns_hostnames = true
 
-  tags = local.vpc-tags
+  tags = {
+    Name = "ecommerce-vpc"
+  }
 }
 
-// now we create 4 subnets in different availability zones for high availability.
-resource "aws_subnet" "ecommerce_public_subnet" {
-  count = 2
+# INTERNET GATEWAY
+
+resource "aws_internet_gateway" "ecommerce_igw" {
+  vpc_id = aws_vpc.ecommerce_vpc.id
+
+  tags = {
+    Name = "ecommerce-igw"
+  }
+}
+
+# PUBLIC SUBNETS (1 PER AZ)
+
+resource "aws_subnet" "public" {
+  count = length(var.availability_zones)
 
   vpc_id                  = aws_vpc.ecommerce_vpc.id
   cidr_block              = cidrsubnet(var.cidr_block, 4, count.index)
   availability_zone       = var.availability_zones[count.index]
   map_public_ip_on_launch = true
 
-  tags = local.public-subnet-tags
-
-  depends_on = [ aws_vpc.ecommerce_vpc ]
+  tags = {
+    Name = "public-subnet-${count.index}"
+  }
 }
 
-resource "aws_subnet" "ecommerce_private_subnet" {
-  count = 2
+# PRIVATE SUBNETS (1 PER AZ)
+
+resource "aws_subnet" "private" {
+  count = length(var.availability_zones)
 
   vpc_id            = aws_vpc.ecommerce_vpc.id
   cidr_block        = cidrsubnet(var.cidr_block, 4, count.index + 2)
   availability_zone = var.availability_zones[count.index]
 
-  tags = local.private-subnet-tags
-
-  depends_on = [ aws_vpc.ecommerce_vpc ]
-}
-
-// now we create an internet gateway and attach it to the vpc for internet connectivity.
-resource "aws_internet_gateway" "ecommerce_igw" {
-  vpc_id = aws_vpc.ecommerce_vpc.id
-  tags = local.igw-tags
-
-  depends_on = [ aws_vpc.ecommerce_vpc ]
-}
-
-// now we create a route table and associate it with the public subnets for routing internet traffic.
-resource "aws_route_table" "ecommerce_public_rt" {
-  vpc_id = aws_vpc.ecommerce_vpc.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.ecommerce_igw.id
+  tags = {
+    Name = "private-subnet-${count.index}"
   }
-
-  tags = local.public-route-table-tags
 }
 
-resource "aws_route_table" "ecommerce_private_rt" {
+# PUBLIC ROUTE TABLE
+
+resource "aws_route_table" "public" {
   vpc_id = aws_vpc.ecommerce_vpc.id
 
-  tags = local.private-route-table-tags
+  tags = {
+    Name = "public-rt"
+  }
 }
 
-
-// now we associate the route tables with the respective subnets.
-resource "aws_route_table_association" "public_subnet_association" {
-  count          = 2
-  subnet_id      = aws_subnet.ecommerce_public_subnet[count.index].id
-  route_table_id = aws_route_table.ecommerce_public_rt.id
-
-  depends_on = [ aws_route_table.ecommerce_public_rt, aws_subnet.ecommerce_public_subnet ]
-}
-
-resource "aws_route_table_association" "private_subnet_association" {
-  count          = 2
-  subnet_id      = aws_subnet.ecommerce_private_subnet[count.index].id
-  route_table_id = aws_route_table.ecommerce_private_rt.id
-
-  depends_on = [ aws_route_table.ecommerce_private_rt, aws_subnet.ecommerce_private_subnet ]
-}
-
-
-// now we create nat gateway in the public subnet for allowing outbound internet access from private subnets.
-resource "aws_eip" "ecommerce_nat_eip" {
-  tags = local.nat-eip-tags
-}
-
-
-resource "aws_nat_gateway" "ecommerce_nat_gateway" {
-  allocation_id = aws_eip.ecommerce_nat_eip.id
-  subnet_id     = aws_subnet.ecommerce_public_subnet[0].id
-
-  tags = local.nat-gateway-tags
-
-  depends_on = [ aws_eip.ecommerce_nat_eip, aws_subnet.ecommerce_private_subnet ]
-  
-}
-
-// now we update the private route table to route internet traffic through the nat gateway.
-resource "aws_route" "private_route_to_internet" {
-  route_table_id         = aws_route_table.ecommerce_private_rt.id
+# Internet Route
+resource "aws_route" "public_internet" {
+  route_table_id         = aws_route_table.public.id
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.ecommerce_nat_gateway.id
+  gateway_id             = aws_internet_gateway.ecommerce_igw.id
+}
+
+# Associate Public Subnets
+resource "aws_route_table_association" "public_assoc" {
+  count = length(aws_subnet.public)
+
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
+}
+
+# ELASTIC IPs FOR NAT (1 PER AZ)
+
+resource "aws_eip" "nat" {
+  count  = length(var.availability_zones)
+  domain = "vpc"
+
+  tags = {
+    Name = "nat-eip-${count.index}"
+  }
+}
+
+# NAT GATEWAY (1 PER AZ)
+
+resource "aws_nat_gateway" "nat" {
+  count = length(var.availability_zones)
+
+  allocation_id = aws_eip.nat[count.index].id
+  subnet_id     = aws_subnet.public[count.index].id
+
+  tags = {
+    Name = "nat-${count.index}"
+  }
+}
+
+# PRIVATE ROUTE TABLES (1 PER AZ)
+
+resource "aws_route_table" "private" {
+  count  = length(var.availability_zones)
+  vpc_id = aws_vpc.ecommerce_vpc.id
+
+  tags = {
+    Name = "private-rt-${count.index}"
+  }
+}
+
+# Route private traffic via NAT in same AZ
+resource "aws_route" "private_nat" {
+  count = length(var.availability_zones)
+
+  route_table_id         = aws_route_table.private[count.index].id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat[count.index].id
+}
+
+# Associate Private Subnets
+resource "aws_route_table_association" "private_assoc" {
+  count = length(var.availability_zones)
+
+  subnet_id      = aws_subnet.private[count.index].id
+  route_table_id = aws_route_table.private[count.index].id
 }
 
 output "vpc_id" {

@@ -182,13 +182,13 @@ variable "pem_file_path" {
 variable "frontend_instance_type" {
   type        = string
   description = "The instance type for the EC2 instance"
-  default     = "t2.micro"
+  default     = "t3.micro"
 }
 
 variable "backend_instance_type" {
   type        = string
   description = "The instance type for the EC2 instance"
-  default     = "t2.small"
+  default     = "t3.micro"
 }
 
 
@@ -202,7 +202,7 @@ variable "db_storage_size" {
 variable "db_instance_type" {
   type        = string
   description = "The instance type for the database EC2 instance"
-  default     = "t2.small"
+  default     = "t3.small"
 }
 
 variable "db_instance_storage_protection" {
