@@ -71,3 +71,18 @@ variable "backend_tg_arn" {
   description = "The ARN of the backend target group"
 }
 
+variable "scale_in_start_time" {
+  type = string
+  description = ""
+}
+
+variable "scale_out_start_time" {
+  type = string
+  description = ""
+}
+
+variable "backend_ecr_s3_access_role" {
+  type = string
+  description = ""
+}
+

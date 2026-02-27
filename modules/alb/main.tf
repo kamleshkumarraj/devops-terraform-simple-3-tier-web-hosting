@@ -29,6 +29,14 @@ resource "aws_security_group" "ecommerce_alb_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+   egress {
+    description = "Allow traffic to backend services on port 8000"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags = {
     Name = "ecommerce_alb_sg"
   }
@@ -54,10 +62,14 @@ resource "aws_lb" "ecommerce_alb" {
 }
 
 resource "aws_lb_target_group" "frontend_tg" {
-  name     = "frontend-tg"
-  port     = 4000
+  name     = "frontend-tg-alb"
+  port     = 80
   protocol = "HTTP"
   vpc_id   = var.vpc_id
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   target_health_state {
     enable_unhealthy_connection_termination = false
@@ -66,13 +78,16 @@ resource "aws_lb_target_group" "frontend_tg" {
 
 // now we create tg for backend server to allow traffic only from frontend server security group on port 8000 for API.
 resource "aws_lb_target_group" "backend_tg" {
-  name     = "backend-tg"
-  port     = 8000
+  name     = "backend-tg-alb"
+  port     = 4000
   protocol = "HTTP"
   vpc_id   = var.vpc_id
 
   target_health_state {
     enable_unhealthy_connection_termination = false
+  }
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
@@ -102,7 +117,7 @@ resource "aws_lb_listener_rule" "frontend_rule" {
 
   condition {
     host_header {
-      values = ["viharfood.in"]
+      values = ["ecommerce.viharfood.in"]
     }
   }
   depends_on = [ aws_lb_target_group.frontend_tg ]

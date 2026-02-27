@@ -36,20 +36,21 @@ variable "asg_name" {
   default = "ecommerce-frontend-asg"
 }
 
-variable "min_size" {
+variable "frontend_min_size" {
   type = number
   default = 0
 }
 
-variable "max_size" {
+variable "frontend_max_size" {
   type = number
-  default = 3
+  default = 5
 }
 
-variable "desired_capacity" {
+variable "frontend_desired_capacity" {
   type = number
   default = 0
 }
+
 
 variable "health_check_gp" {
   type = number
@@ -72,6 +73,17 @@ variable "frontend_tg_arn" {
 }
 
 variable "frontend_ec2_role_name" {
-  
+  type = string
+  description = "The name of the IAM role to be attached to the frontend EC2 instances for accessing ECR and S3"
+
 }
 
+variable "scale_in_start_time" {
+  type = string
+  description = ""
+}
+
+variable "scale_out_start_time" {
+  type = string
+  description = ""
+}

@@ -31,9 +31,9 @@ resource "aws_launch_template" "ecommerce_backend_lt" {
 
   ebs_optimized = true
 
-  # iam_instance_profile {
-  #   name = "test"
-  # }
+  iam_instance_profile {
+    name = var.backend_ecr_s3_access_role
+  }
 
   image_id = var.backend_lt_ami_id
 
@@ -204,7 +204,7 @@ resource "aws_autoscaling_schedule" "weekday_scale_out" {
 
   recurrence = "0 8 * * MON-FRI"
 
-  start_time = "2026-02-28T00:00:00Z"
+  start_time = var.scale_out_start_time
 
   time_zone = "Asia/Kolkata"
 }
@@ -219,7 +219,7 @@ resource "aws_autoscaling_schedule" "weekday_scale_in" {
 
   recurrence = "0 20 * * MON-FRI"
 
-  start_time = "2026-02-28T01:00:00Z"
+  start_time = var.scale_in_start_time
 
   time_zone = "Asia/Kolkata"
 }

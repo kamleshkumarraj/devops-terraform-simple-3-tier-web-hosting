@@ -83,6 +83,12 @@ variable "backend_ingress_rules" {
       to_port     = 4000
       protocol    = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
     }
   ]
 }
@@ -118,6 +124,12 @@ variable "db_ingress_rules" {
     {
       from_port   = 27017
       to_port     = 27017
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      from_port   = 22
+      to_port     = 22
       protocol    = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
     }

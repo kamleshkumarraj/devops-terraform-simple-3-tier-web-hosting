@@ -15,7 +15,11 @@ resource "aws_launch_template" "ecommerce_frontend_lt" {
 
   capacity_reservation_specification {
     capacity_reservation_preference = "open"
+
+    
   }
+
+
 
   # cpu_options {
   #   core_count       = 4
@@ -71,6 +75,8 @@ resource "aws_launch_template" "ecommerce_frontend_lt" {
 
   # ram_disk_id = "test"
 
+  
+
   vpc_security_group_ids = [var.frontend_sg]
 
   tag_specifications {
@@ -91,11 +97,11 @@ resource "aws_launch_template" "ecommerce_frontend_lt" {
 
 resource "aws_autoscaling_group" "ecommerce_frontend_asg" {
   name                      = var.asg_name
-  max_size                  = var.max_size
-  min_size                  = var.min_size
+  max_size                  = var.frontend_max_size
+  min_size                  = var.frontend_min_size
   health_check_grace_period = var.health_check_gp
   health_check_type         = var.health_check_type
-  desired_capacity          = var.desired_capacity
+  desired_capacity          = var.frontend_desired_capacity
   force_delete              = true
   # placement_group           = aws_placement_group.frontend_asg_placement_group.id
   launch_template {
@@ -126,6 +132,17 @@ resource "aws_autoscaling_group" "ecommerce_frontend_asg" {
   #   notification_target_arn = "arn:aws:sqs:us-east-1:444455556666:queue1*"
   #   role_arn                = "arn:aws:iam::123456789012:role/S3Access"
   # }
+
+  instance_refresh {
+    strategy = "Rolling"
+
+    preferences {
+      min_healthy_percentage = 100
+      max_healthy_percentage = 200
+    
+      instance_warmup        = 120
+    }
+  }
 
   # tag {
   #   key                 = "foo"
@@ -205,7 +222,7 @@ resource "aws_autoscaling_schedule" "weekday_scale_out" {
 
   recurrence = "0 8 * * MON-FRI"
 
-  start_time = "2026-02-28T00:00:00Z"
+  start_time = var.scale_out_start_time
 
   time_zone = "Asia/Kolkata"
 }
@@ -220,7 +237,7 @@ resource "aws_autoscaling_schedule" "weekday_scale_in" {
 
   recurrence = "0 20 * * MON-FRI"
 
-  start_time = "2026-02-28T01:00:00Z"
+  start_time = var.scale_in_start_time
 
   time_zone = "Asia/Kolkata"
 }

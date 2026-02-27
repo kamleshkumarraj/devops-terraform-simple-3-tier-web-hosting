@@ -147,5 +147,6 @@ resource "aws_instance" "database_server" {
     encrypted             = true
     delete_on_termination = var.db_instance_storage_protection
   }
+  user_data = filebase64("${path.module}/database_setup.sh")
 }
 

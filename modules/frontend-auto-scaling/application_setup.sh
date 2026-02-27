@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+APP_DIR="/opt/frontend"
+PROJECT_NAME="frontend"
+
 echo "==== Updating system ===="
 sudo apt update -y
 
@@ -15,28 +18,26 @@ sudo apt install -y \
     zip \
     software-properties-common
 
-# Install AWS CLI v2 (Official Method)
+# Install AWS CLI v2
 
 if ! command -v aws &> /dev/null
 then
     echo "==== Installing AWS CLI v2 ===="
-    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-    unzip -o awscliv2.zip
+    curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    unzip -oq awscliv2.zip
     sudo ./aws/install --update
     rm -rf aws awscliv2.zip
 else
     echo "==== AWS CLI already installed ===="
 fi
 
-echo "AWS CLI Version:"
 aws --version
 
-# Install Docker (Official Repo Method)
+# Install Docker
 
 echo "==== Removing old Docker packages if any ===="
 sudo apt remove -y docker docker-engine docker.io containerd runc || true
 
-echo "==== Setting up Docker repository ===="
 sudo install -m 0755 -d /etc/apt/keyrings
 
 if [ ! -f /etc/apt/keyrings/docker.asc ]; then
@@ -50,26 +51,24 @@ echo \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 sudo apt update -y
-
-echo "==== Installing Docker Engine ===="
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-echo "==== Enabling Docker Service ===="
 sudo systemctl enable docker
 sudo systemctl restart docker
+
+# Create App Directory
+
+echo "==== Preparing application directory ===="
+sudo mkdir -p ${APP_DIR}
+sudo chown -R $USER:$USER ${APP_DIR}
+cd ${APP_DIR}
 
 # ECR Login
 
 echo "==== Logging in to AWS ECR ===="
 
-if aws ecr get-login-password --region ap-south-1 | \
-   docker login --username AWS --password-stdin 768289995096.dkr.ecr.ap-south-1.amazonaws.com
-then
-    echo "==== ECR Login Successful ===="
-else
-    echo "ECR Login Failed"
-    exit 1
-fi
+aws ecr get-login-password --region ap-south-1 | \
+docker login --username AWS --password-stdin 768289995096.dkr.ecr.ap-south-1.amazonaws.com
 
 # Pull Image
 
@@ -95,8 +94,8 @@ EOF
 # Run Docker Compose
 
 echo "==== Starting Application ===="
-docker compose down || true
-docker compose up -d
+docker compose -p ${PROJECT_NAME} down || true
+docker compose -p ${PROJECT_NAME} up -d
 
 echo "====================================================="
 echo "✅ Deployment Completed Successfully"

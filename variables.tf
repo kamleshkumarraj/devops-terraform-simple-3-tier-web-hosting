@@ -108,3 +108,24 @@ variable "ecr_repository_arn" {
   type = string
   description = "ECR repository ARN" 
 }
+
+variable "ecr_repository_arn_backend" {
+  type = string
+  description = "ECR repository ARN"
+}
+
+variable "scale_in_start_time" {
+  type = string
+  description = ""
+}
+
+variable "scale_out_start_time" {
+  type = string
+  description = ""
+}
+
+variable "bucket_name" {
+  type = string
+  description = "The name of the S3 bucket"
+}
+
