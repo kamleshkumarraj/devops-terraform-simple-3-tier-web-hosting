@@ -25,10 +25,6 @@ variable "backend_lt_key_name" {
   description = "The key name to be used for the backend launch template"
 }
 
-variable "backend_sg" {
-    type = string
-    description = "The security group ID for the backend auto scaling group"
-}
 
 // now we define all asg related varibale.
 variable "asg_name" {
@@ -43,7 +39,7 @@ variable "min_size" {
 
 variable "max_size" {
   type = number
-  default = 3
+  default = 4
 }
 
 variable "desired_capacity" {
@@ -86,3 +82,56 @@ variable "backend_ecr_s3_access_role" {
   description = ""
 }
 
+variable "backend_instance_name" {
+  type        = string
+  description = "Name of the backend EC2 instance"
+  default     = "backend-ecommerce-server"
+}
+
+variable "vpc_id" {
+  type        = string
+  description = "ID of the VPC where the EC2 instance will be launched"
+}
+
+// now we create sg for backend server to allow traffic only from frontend server security group on port 3306 for MySQL database.
+variable "backend_ingress_rules" {
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+  }))
+  description = "List of ingress rules for the backend security group"
+  default = [
+    {
+      from_port   = 4000
+      to_port     = 4000
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  ]
+}
+
+variable "backend_egress_rules" {
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+  }))
+  description = "List of egress rules for the backend security group"
+  default = [
+    {
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  ]
+}

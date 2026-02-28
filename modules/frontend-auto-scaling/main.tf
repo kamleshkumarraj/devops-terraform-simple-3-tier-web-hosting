@@ -1,3 +1,34 @@
+// first we define sg for frontend server to allow traffic from internet on port 80 and 22 for ssh access.
+resource "aws_security_group" "ec2_sg_frontend" {
+  name   = "${var.frontend_instance_name}-sg-1"
+  vpc_id = var.vpc_id
+
+  dynamic "ingress" {
+    for_each = var.frontend_ingress_rules
+    content {
+      from_port   = ingress.value.from_port
+      to_port     = ingress.value.to_port
+      protocol    = ingress.value.protocol
+      cidr_blocks = ingress.value.cidr_blocks
+    }
+  }
+
+  dynamic "egress" {
+    for_each = var.frontend_egress_rules
+    content {
+      from_port   = egress.value.from_port
+      to_port     = egress.value.to_port
+      protocol    = egress.value.protocol
+      cidr_blocks = egress.value.cidr_blocks
+    }
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+  tags = local.frontend_server_sg_tags
+}
+
 // we create first launch template.
 
 resource "aws_launch_template" "ecommerce_frontend_lt" {
@@ -77,7 +108,7 @@ resource "aws_launch_template" "ecommerce_frontend_lt" {
 
   
 
-  vpc_security_group_ids = [var.frontend_sg]
+  vpc_security_group_ids = [aws_security_group.ec2_sg_frontend.id]
 
   tag_specifications {
     resource_type = "instance"

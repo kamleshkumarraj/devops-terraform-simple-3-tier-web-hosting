@@ -72,7 +72,7 @@ aws ecr get-login-password --region ap-south-1 | docker login --username AWS --p
 # Pull Image
 
 echo "==== Pulling latest backend image ===="
-docker pull 768289995096.dkr.ecr.ap-south-1.amazonaws.com/ecommerce/backend-main:latest
+docker pull 768289995096.dkr.ecr.ap-south-1.amazonaws.com/ecommerce/backend-main:1.0.0
 
 # Create docker-compose.yml
 
@@ -83,7 +83,7 @@ version: '3.8'
 
 services:
   backend:
-    image: 768289995096.dkr.ecr.ap-south-1.amazonaws.com/ecommerce/backend-main:latest
+    image: 768289995096.dkr.ecr.ap-south-1.amazonaws.com/ecommerce/backend-main:1.0.0
     container_name: backend_container
     ports:
       - "4000:2000"

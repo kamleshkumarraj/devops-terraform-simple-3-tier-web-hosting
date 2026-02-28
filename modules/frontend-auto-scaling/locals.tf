@@ -13,4 +13,8 @@ locals {
       "name" = "${var.asg_name}"
     }
   )
+
+  frontend_server_sg_tags = merge(local.commonTags, {
+    name = "ecommerce-frontend-server-sg"
+  })
 }

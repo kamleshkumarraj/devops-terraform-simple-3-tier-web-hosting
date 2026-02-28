@@ -1,61 +1,3 @@
-// first we create a key pair to access our EC2 instances. The public key is stored in the same directory as this module.
-
-
-// now we create a security group to allow inbound traffic on port 80 for our web server and port 22 for SSH access.
-resource "aws_security_group" "ec2_sg_frontend" {
-  name   = "${var.frontend_instance_name}-sg"
-  vpc_id = var.vpc_id
-
-  dynamic "ingress" {
-    for_each = var.frontend_ingress_rules
-    content {
-      from_port   = ingress.value.from_port
-      to_port     = ingress.value.to_port
-      protocol    = ingress.value.protocol
-      cidr_blocks = ingress.value.cidr_blocks
-    }
-  }
-
-  dynamic "egress" {
-    for_each = var.frontend_egress_rules
-    content {
-      from_port   = egress.value.from_port
-      to_port     = egress.value.to_port
-      protocol    = egress.value.protocol
-      cidr_blocks = egress.value.cidr_blocks
-    }
-  }
-
-  tags = local.frontend_server_sg_tags
-}
-
-// now we create sg for backend server to allow traffic only from frontend server security group on port 3306 for MySQL database.
-resource "aws_security_group" "ec2_sg_backend" {
-  name   = "${var.backend_instance_name}-sg"
-  vpc_id = var.vpc_id
-
-  dynamic "ingress" {
-    for_each = var.backend_ingress_rules
-    content {
-      from_port   = ingress.value.from_port
-      to_port     = ingress.value.to_port
-      protocol    = ingress.value.protocol
-      cidr_blocks = ingress.value.cidr_blocks
-    }
-  }
-
-  dynamic "egress" {
-    for_each = var.backend_egress_rules
-    content {
-      from_port   = egress.value.from_port
-      to_port     = egress.value.to_port
-      protocol    = egress.value.protocol
-      cidr_blocks = egress.value.cidr_blocks
-    }
-  }
-
-  tags = local.backend_server_sg_tags
-}
 
 resource "aws_security_group" "ec2_sg_database" {
   name   = "${var.db_instance_name}-sg"
@@ -82,14 +24,6 @@ resource "aws_security_group" "ec2_sg_database" {
   }
 
   tags = local.db_server_sg_tags
-}
-
-output "frontend_sg_id" {
-  value = aws_security_group.ec2_sg_frontend.id
-}
-
-output "backend_sg_id" {
-  value = aws_security_group.ec2_sg_backend.id
 }
 
 output "database_sg_id" {

@@ -38,9 +38,10 @@ module "ec2" {
 module "alb" {
   source = "./modules/alb"
   common_tags = var.common_tags
-  alb_subnet = module.vpc.public_subnet_id
   vpc_id = module.vpc.vpc_id
-
+  alb_private_subnet = module.vpc.private_subnet_id
+  alb_public_subnet = module.vpc.public_subnet_id
+  backend_cidr_blocks = module.vpc.private_subnet_cidr
 }
 
 
@@ -50,7 +51,6 @@ module "frontend-auto-scaling" {
   frontend_lt_name = var.frontend_lt_name
   frontend_lt_instance_type = var.frontend_lt_instance_type
   frontend_lt_key_name = var.frontend_lt_key_name
-  frontend_sg = module.ec2.frontend_sg_id
   asg_subnet = module.vpc.private_subnet_id
   frontend_lt_ami_id = var.frontend_lt_ami_id
   frontend_tg_arn = module.alb.frontend_tg_arn
@@ -58,6 +58,7 @@ module "frontend-auto-scaling" {
   depends_on = [ module.alb ]
   scale_in_start_time = var.scale_in_start_time
   scale_out_start_time = var.scale_out_start_time
+  vpc_id = module.vpc.vpc_id
 }
 
 
@@ -68,13 +69,12 @@ module "backend-auto-scaling" {
   backend_lt_name = var.backend_lt_name
   backend_lt_instance_type = var.backend_lt_instance_type
   backend_lt_key_name = var.backend_lt_key_name
-  backend_sg = module.ec2.backend_sg_id
   asg_subnet = module.vpc.private_subnet_id
   backend_lt_ami_id = var.backend_lt_ami_id
   backend_tg_arn = module.alb.backend_tg_arn
   scale_in_start_time = var.scale_in_start_time
   scale_out_start_time = var.scale_out_start_time
   backend_ecr_s3_access_role = module.iam.backend_ec2_access_ecr_role
-  depends_on = [ module.alb ]
+  vpc_id = module.vpc.vpc_id
 }
 

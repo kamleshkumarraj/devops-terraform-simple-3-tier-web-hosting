@@ -25,10 +25,6 @@ variable "frontend_lt_key_name" {
   description = "The key name to be used for the frontend launch template"
 }
 
-variable "frontend_sg" {
-    type = string
-    description = "The security group ID for the frontend auto scaling group"
-}
 
 // now we define all asg related varibale.
 variable "asg_name" {
@@ -43,7 +39,7 @@ variable "frontend_min_size" {
 
 variable "frontend_max_size" {
   type = number
-  default = 5
+  default = 4
 }
 
 variable "frontend_desired_capacity" {
@@ -86,4 +82,62 @@ variable "scale_in_start_time" {
 variable "scale_out_start_time" {
   type = string
   description = ""
+}
+
+
+// frontend launch template sg variables
+variable "vpc_id" {
+  type        = string
+  description = "ID of the VPC where the EC2 instance will be launched"
+}
+
+variable "frontend_instance_name" {
+  type        = string
+  description = "Name of the frontend EC2 instance"
+  default     = "frontend-ecommerce-server"
+}
+
+
+
+variable "frontend_ingress_rules" {
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = optional(list(string), [])
+    security_groups = optional(list(string), [])
+  }))
+  description = "List of ingress rules for the security group"
+  default = [
+    {
+      from_port   = 80
+      to_port     = 80
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  ]
+}
+
+variable "frontend_egress_rules" {
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+  }))
+  description = "List of egress rules for the security group"
+  default = [
+    {
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  ]
 }

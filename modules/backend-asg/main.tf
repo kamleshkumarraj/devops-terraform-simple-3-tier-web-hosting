@@ -1,3 +1,33 @@
+resource "aws_security_group" "ec2_sg_backend" {
+  name   = "${var.backend_instance_name}-sg-1"
+  vpc_id = var.vpc_id
+
+  dynamic "ingress" {
+    for_each = var.backend_ingress_rules
+    content {
+      from_port   = ingress.value.from_port
+      to_port     = ingress.value.to_port
+      protocol    = ingress.value.protocol
+      cidr_blocks = ingress.value.cidr_blocks
+    }
+  }
+
+  dynamic "egress" {
+    for_each = var.backend_egress_rules
+    content {
+      from_port   = egress.value.from_port
+      to_port     = egress.value.to_port
+      protocol    = egress.value.protocol
+      cidr_blocks = egress.value.cidr_blocks
+    }
+  }
+
+  tags = local.backend_server_sg_tags
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 // we create first launch template.
 
 resource "aws_launch_template" "ecommerce_backend_lt" {
@@ -71,12 +101,12 @@ resource "aws_launch_template" "ecommerce_backend_lt" {
 
   # ram_disk_id = "test"
 
-  vpc_security_group_ids = [var.backend_sg]
+  vpc_security_group_ids = [aws_security_group.ec2_sg_backend.id]
 
   tag_specifications {
     resource_type = "instance"
 
-    tags = local.ft_launch_template_tags
+    tags = local.backend_launch_template_tags
   }
 
   user_data = filebase64("${path.module}/application_setup.sh")
