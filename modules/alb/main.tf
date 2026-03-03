@@ -30,34 +30,34 @@ resource "aws_security_group" "public_alb_sg" {
 }
 
 // now we define sg for internal load balancer to allow traffic only from frontend server security group on port 4000 for API.
-resource "aws_security_group" "internal_alb_sg" {
-  name        = "internal_alb_sg"
-  description = "Security group for Ecommerce Internal ALB"
-  vpc_id      = var.vpc_id
+# resource "aws_security_group" "internal_alb_sg" {
+#   name        = "internal_alb_sg"
+#   description = "Security group for Ecommerce Internal ALB"
+#   vpc_id      = var.vpc_id
 
-  # Allow traffic from frontend ALB security group on port 4000
-  dynamic "ingress" {
-    for_each = local.backend_ingress_rules
-    content {
-      from_port   = ingress.value.from_port
-      to_port     = ingress.value.to_port
-      protocol    = ingress.value.protocol
-      security_groups = ingress.value.security_groups
-    }
-  }
+#   # Allow traffic from frontend ALB security group on port 4000
+#   dynamic "ingress" {
+#     for_each = local.backend_ingress_rules
+#     content {
+#       from_port   = ingress.value.from_port
+#       to_port     = ingress.value.to_port
+#       protocol    = ingress.value.protocol
+#       cidr_blocks  = ingress.value.cidr_blocks
+#     }
+#   }
 
-  dynamic "egress" {
-    for_each = local.backend_egress_rules
-    content {
-      from_port   = egress.value.from_port
-      to_port     = egress.value.to_port
-      protocol    = egress.value.protocol
-      cidr_blocks = egress.value.cidr_blocks
-    }
-  }
+#   dynamic "egress" {
+#     for_each = local.backend_egress_rules
+#     content {
+#       from_port   = egress.value.from_port
+#       to_port     = egress.value.to_port
+#       protocol    = egress.value.protocol
+#       cidr_blocks = egress.value.cidr_blocks
+#     }
+#   }
 
-  tags = local.internal_alb_sg_tags
-}
+#   tags = local.internal_alb_sg_tags
+# }
   
 // this load balancer is public internet facing only for frontend server.
 resource "aws_lb" "frontend_public_alb" {
@@ -121,23 +121,8 @@ resource "aws_lb_listener_rule" "frontend_rule" {
   }
 }
 
-// ========================================Backend ALB and Target Group for API Server=========================
-
-// now we create private internael load balancer for backend server to allow traffic only from frontend server security group on port 8000 for API.
-resource "aws_lb" "backend_internal_alb" {
-  name               = "backend-internal-alb"
-  internal           = true
-  load_balancer_type = "application"
-
-  subnets = [for subnet in var.alb_private_subnet: subnet]
-  security_groups    = [aws_security_group.internal_alb_sg.id]
-}
-
-// now we create tg for backend server to allow traffic only from frontend server security group on port 8000 for API.
-
-
 resource "aws_lb_target_group" "backend_tg" {
-  name     = "backend-tg-alb"
+  name     = "backend-tg"
   port     = 4000
   protocol = "HTTP"
   vpc_id   = var.vpc_id
@@ -148,23 +133,16 @@ resource "aws_lb_target_group" "backend_tg" {
   lifecycle {
     create_before_destroy = true
   }
-}
 
-resource "aws_lb_listener" "backend_listener_http" {
-  load_balancer_arn = aws_lb.backend_internal_alb.arn
-  port              = 80
-  protocol          = "HTTP"
+  health_check {
+    path = "/api/v2/health-check"
 
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.backend_tg.arn
   }
 }
 
-// now we create listener rule for backend server to allow traffic only from frontend server security group on port 8000 for API.
 resource "aws_lb_listener_rule" "backend_rule" {
-  listener_arn = aws_lb_listener.backend_listener_http.arn
-  priority     = 100
+  listener_arn = aws_lb_listener.frontend_listener_http.arn
+  priority     = 101
 
   action {
     type = "forward"
@@ -172,11 +150,42 @@ resource "aws_lb_listener_rule" "backend_rule" {
   }
   condition {
     host_header {
-      values = ["ecommerce-api.viharfood.in"]
+      values = ["api.ecommerce.viharfood.in"]
     }
   }
   depends_on = [ aws_lb_target_group.backend_tg ]
 }
+
+// ========================================Backend ALB and Target Group for API Server=========================
+
+// now we create private internael load balancer for backend server to allow traffic only from frontend server security group on port 8000 for API.
+# resource "aws_lb" "backend_internal_alb" {
+#   name               = "backend-internal-alb"
+#   internal           = true
+#   load_balancer_type = "application"
+
+#   subnets = [for subnet in var.alb_private_subnet: subnet]
+#   security_groups    = [aws_security_group.internal_alb_sg.id]
+# }
+
+// now we create tg for backend server to allow traffic only from frontend server security group on port 8000 for API.
+
+
+
+
+# resource "aws_lb_listener" "backend_listener_http" {
+#   load_balancer_arn = aws_lb.backend_internal_alb.arn
+#   port              = 80
+#   protocol          = "HTTP"
+
+#   default_action {
+#     type             = "forward"
+#     target_group_arn = aws_lb_target_group.backend_tg.arn
+#   }
+# }
+
+// now we create listener rule for backend server to allow traffic only from frontend server security group on port 8000 for API.
+
 
 
 output "frontend_tg_arn" {
@@ -185,4 +194,12 @@ output "frontend_tg_arn" {
 
 output "backend_tg_arn" {
   value = aws_lb_target_group.backend_tg.arn
+}
+
+output "ecommerce_alb_dns" {
+  value = aws_lb.frontend_public_alb.dns_name
+}
+
+output "ecommerce_alb_zone_id" {
+  value = aws_lb.frontend_public_alb.zone_id
 }

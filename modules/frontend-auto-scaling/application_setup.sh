@@ -73,7 +73,7 @@ docker login --username AWS --password-stdin 768289995096.dkr.ecr.ap-south-1.ama
 # Pull Image
 
 echo "==== Pulling latest frontend image ===="
-docker pull 768289995096.dkr.ecr.ap-south-1.amazonaws.com/ecommerce/frontend-main:latest
+docker pull 768289995096.dkr.ecr.ap-south-1.amazonaws.com/ecommerce/frontend-main:1.0.1
 
 # Create docker-compose.yml
 
@@ -84,7 +84,7 @@ version: '3.8'
 
 services:
   frontend:
-    image: 768289995096.dkr.ecr.ap-south-1.amazonaws.com/ecommerce/frontend-main:latest
+    image: 768289995096.dkr.ecr.ap-south-1.amazonaws.com/ecommerce/frontend-main:1.0.1
     container_name: frontend_container
     ports:
       - "80:80"

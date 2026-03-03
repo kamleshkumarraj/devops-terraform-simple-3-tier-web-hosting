@@ -44,7 +44,7 @@ variable "max_size" {
 
 variable "desired_capacity" {
   type = number
-  default = 0
+  default = 1
 }
 
 variable "health_check_gp" {

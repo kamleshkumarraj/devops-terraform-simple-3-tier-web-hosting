@@ -228,13 +228,11 @@ resource "aws_autoscaling_schedule" "weekday_scale_out" {
   scheduled_action_name  = "weekday-scale-out"
   autoscaling_group_name = aws_autoscaling_group.ecommerce_backend_asg.name
 
-  min_size         = 1
+  min_size         = 0
   max_size         = 5
-  desired_capacity = 1
+  desired_capacity = 0
 
   recurrence = "0 8 * * MON-FRI"
-
-  start_time = var.scale_out_start_time
 
   time_zone = "Asia/Kolkata"
 }
@@ -248,8 +246,6 @@ resource "aws_autoscaling_schedule" "weekday_scale_in" {
   desired_capacity = 0
 
   recurrence = "0 20 * * MON-FRI"
-
-  start_time = var.scale_in_start_time
 
   time_zone = "Asia/Kolkata"
 }

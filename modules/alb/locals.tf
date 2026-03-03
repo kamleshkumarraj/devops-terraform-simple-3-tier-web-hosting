@@ -27,24 +27,12 @@ locals {
       to_port     = 80
       protocol    = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
-    }
-  ]
-
-  backend_ingress_rules = [
+    },
     {
-      from_port   = 80
+      from_port   = 4000
       to_port     = 4000
       protocol    = "tcp"
-      security_groups = [aws_security_group.public_alb_sg.id]
-    }
-  ]
-
-  backend_egress_rules = [
-    {
-      from_port   = 80
-      to_port     = 4000
-      protocol    = "tcp"
-      cidr_blocks = var.backend_cidr_blocks
+      cidr_blocks = ["0.0.0.0/0"]
     }
   ]
 }

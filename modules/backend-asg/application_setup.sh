@@ -103,5 +103,5 @@ docker compose -p ${PROJECT_NAME} up -d
 
 echo "====================================================="
 echo "✅ Deployment Completed Successfully"
-echo "Access application at: http://ecommerce.viarfood.in"
+echo "Access application at: http://ecommerce-api.viarfood.in"
 echo "====================================================="

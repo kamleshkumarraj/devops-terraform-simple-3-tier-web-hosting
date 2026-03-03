@@ -44,6 +44,13 @@ module "alb" {
   backend_cidr_blocks = module.vpc.private_subnet_cidr
 }
 
+module "route53" {
+  source = "./modules/route53"
+  common_tags = var.common_tags
+  ecommerce_alb_dns = module.alb.ecommerce_alb_dns
+  ecommerce_alb_zone_id = module.alb.ecommerce_alb_zone_id
+}
+
 
 module "frontend-auto-scaling" {
   source = "./modules/frontend-auto-scaling"
