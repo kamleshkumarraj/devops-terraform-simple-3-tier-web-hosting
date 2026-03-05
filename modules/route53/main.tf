@@ -26,3 +26,15 @@ resource "aws_route53_record" "ecommerce_api_alb" {
     evaluate_target_health = true
   }
 }
+
+resource "aws_route53_record" "ecommerce_jenkins_alb" {
+  zone_id = aws_route53_zone.viharfood_zone.zone_id
+  name    = "jenkins.viharfood.in"
+  type    = "A"
+
+  alias {
+    name                   = var.ecommerce_alb_dns
+    zone_id                = var.ecommerce_alb_zone_id
+    evaluate_target_health = true
+  }
+}

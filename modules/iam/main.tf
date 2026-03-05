@@ -54,9 +54,32 @@ resource "aws_iam_policy" "ec2_policy_access_ecr" {
   tags = local.frontend_ec2_policy_tags
 }
 
-resource "aws_iam_role_policy_attachment" "attach_policy" {
+resource "aws_iam_policy" "ec2_policy_access_frontend_ssm_parameters" {
+  name        = "ecommerce-frontend-ssm-access-policy-ec2"
+  description = "Allow EC2 to access SSM parameters for frontend"
+
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "ssm:GetParameter"
+        ],
+        "Resource" : var.ssm_param_arn_frontend
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "attach_policy-1" {
   role       = aws_iam_role.ec2_role_ecommerce_frontend.name
   policy_arn = aws_iam_policy.ec2_policy_access_ecr.arn
+}
+
+resource "aws_iam_role_policy_attachment" "attach_policy-2" {
+  role       = aws_iam_role.ec2_role_ecommerce_frontend.name
+  policy_arn = aws_iam_policy.ec2_policy_access_frontend_ssm_parameters.arn
 }
 
 resource "aws_iam_instance_profile" "ec2_profile" {
@@ -140,9 +163,32 @@ resource "aws_iam_policy" "ec2_policy_access_ecr_s3" {
   tags = local.backend_ec2_policy_tags
 }
 
+resource "aws_iam_policy" "backend_ssm_parameters" {
+  name        = "ecommerce-backend-ssm-access-policy-ec2"
+  description = "Allow EC2 to access SSM parameters for backend"
+
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "ssm:GetParameter"
+        ],
+        "Resource" : var.ssm_param_arn_backend
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role_policy_attachment" "attach_policy_backend" {
   role       = aws_iam_role.ec2_role_ecommerce_backend.name
   policy_arn = aws_iam_policy.ec2_policy_access_ecr_s3.arn
+}
+
+resource "aws_iam_role_policy_attachment" "attach_policy_backend-1" {
+  role       = aws_iam_role.ec2_role_ecommerce_backend.name
+  policy_arn = aws_iam_policy.backend_ssm_parameters.arn
 }
 
 resource "aws_iam_instance_profile" "ec2_profile_backend" {

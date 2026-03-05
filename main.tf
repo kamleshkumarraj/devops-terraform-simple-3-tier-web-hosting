@@ -11,6 +11,8 @@ module "iam" {
   ecr_repository_arn_backend = var.ecr_repository_arn_backend
   common_tags = var.common_tags
   bucket_arn = module.s3.bucket_arn
+  ssm_param_arn_frontend = var.ssm_param_arn_frontend
+  ssm_param_arn_backend = var.ssm_param_arn_backend
 }
 
 

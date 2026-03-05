@@ -44,7 +44,7 @@ variable "max_size" {
 
 variable "desired_capacity" {
   type = number
-  default = 1
+  default = 0
 }
 
 variable "health_check_gp" {
@@ -135,3 +135,4 @@ variable "backend_egress_rules" {
     }
   ]
 }
+

@@ -3,58 +3,16 @@
 set -euo pipefail
 
 APP_DIR="/opt/frontend"
-PROJECT_NAME="frontend"
+PROJECT_NAME="ecommerce-frontend"
+
 
 echo "==== Updating system ===="
 sudo apt update -y
 
-echo "==== Installing prerequisites ===="
-sudo apt install -y \
-    ca-certificates \
-    curl \
-    gnupg \
-    lsb-release \
-    unzip \
-    zip \
-    software-properties-common
-
-# Install AWS CLI v2
-
-if ! command -v aws &> /dev/null
-then
-    echo "==== Installing AWS CLI v2 ===="
-    curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-    unzip -oq awscliv2.zip
-    sudo ./aws/install --update
-    rm -rf aws awscliv2.zip
-else
-    echo "==== AWS CLI already installed ===="
-fi
-
-aws --version
-
-# Install Docker
-
-echo "==== Removing old Docker packages if any ===="
-sudo apt remove -y docker docker-engine docker.io containerd runc || true
-
-sudo install -m 0755 -d /etc/apt/keyrings
-
-if [ ! -f /etc/apt/keyrings/docker.asc ]; then
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo tee /etc/apt/keyrings/docker.asc > /dev/null
-    sudo chmod a+r /etc/apt/keyrings/docker.asc
-fi
-
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo ${UBUNTU_CODENAME:-$VERSION_CODENAME}) stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-sudo apt update -y
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-sudo systemctl enable docker
-sudo systemctl restart docker
+IMAGE=$(aws ssm get-parameter \
+--name "ecommerce-frontend-image" \
+--query "Parameter.Value" \
+--output text)
 
 # Create App Directory
 
@@ -73,7 +31,7 @@ docker login --username AWS --password-stdin 768289995096.dkr.ecr.ap-south-1.ama
 # Pull Image
 
 echo "==== Pulling latest frontend image ===="
-docker pull 768289995096.dkr.ecr.ap-south-1.amazonaws.com/ecommerce/frontend-main:1.0.1
+docker pull 768289995096.dkr.ecr.ap-south-1.amazonaws.com/$IMAGE
 
 # Create docker-compose.yml
 
@@ -84,7 +42,7 @@ version: '3.8'
 
 services:
   frontend:
-    image: 768289995096.dkr.ecr.ap-south-1.amazonaws.com/ecommerce/frontend-main:1.0.1
+    image: 768289995096.dkr.ecr.ap-south-1.amazonaws.com/$IMAGE
     container_name: frontend_container
     ports:
       - "80:80"

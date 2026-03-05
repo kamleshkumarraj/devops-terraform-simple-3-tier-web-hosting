@@ -70,6 +70,9 @@ resource "aws_instance" "database_server" {
   subnet_id                   = var.subnet_id[0]
   associate_public_ip_address = var.associate_public_ip_address
   vpc_security_group_ids      = [aws_security_group.ec2_sg_database.id]
+  
+  // define property for stop instance.
+  
 
   tags = merge(var.common_tags, {
     Name = "${var.db_instance_name}-1"

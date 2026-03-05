@@ -51,6 +51,7 @@ resource "aws_launch_template" "ecommerce_backend_lt" {
   #   core_count       = 4
   #   threads_per_core = 2
   # }
+  update_default_version = true
 
   credit_specification {
     cpu_credits = "standard"
@@ -132,7 +133,7 @@ resource "aws_autoscaling_group" "ecommerce_backend_asg" {
   # placement_group           = aws_placement_group.backend_asg_placement_group.id
   launch_template {
   id      = aws_launch_template.ecommerce_backend_lt.id
-  version = "$Latest"
+  version = aws_launch_template.ecommerce_backend_lt.latest_version
 }
   vpc_zone_identifier       = var.asg_subnet
 
@@ -168,7 +169,16 @@ resource "aws_autoscaling_group" "ecommerce_backend_asg" {
   target_group_arns = [
     var.backend_tg_arn
   ]
+  instance_refresh {
+    strategy = "Rolling"
 
+    preferences {
+      min_healthy_percentage = 100
+      max_healthy_percentage = 200
+    }
+
+    triggers = ["launch_template"]
+  }
   
   tag {
     key                 = "Name"

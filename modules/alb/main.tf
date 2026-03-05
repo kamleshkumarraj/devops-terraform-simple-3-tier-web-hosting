@@ -58,6 +58,15 @@ resource "aws_security_group" "public_alb_sg" {
 
 #   tags = local.internal_alb_sg_tags
 # }
+
+// jenkins serevr getting via data source.
+data "aws_instance" "jenkins-server" {
+  
+  filter {
+    name   = "tag:server"
+    values = ["jenkins"]
+  }
+}
   
 // this load balancer is public internet facing only for frontend server.
 resource "aws_lb" "frontend_public_alb" {
@@ -79,6 +88,19 @@ resource "aws_lb" "frontend_public_alb" {
 }
 
 
+
+
+resource "aws_lb_listener" "frontend_listener_http" {
+  load_balancer_arn = aws_lb.frontend_public_alb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.frontend_tg.arn
+  }
+}
+
 resource "aws_lb_target_group" "frontend_tg" {
   name     = "frontend-tg-alb"
   port     = 80
@@ -91,17 +113,6 @@ resource "aws_lb_target_group" "frontend_tg" {
 
   target_health_state {
     enable_unhealthy_connection_termination = false
-  }
-}
-
-resource "aws_lb_listener" "frontend_listener_http" {
-  load_balancer_arn = aws_lb.frontend_public_alb.arn
-  port              = 80
-  protocol          = "HTTP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.frontend_tg.arn
   }
 }
 
@@ -156,6 +167,53 @@ resource "aws_lb_listener_rule" "backend_rule" {
   depends_on = [ aws_lb_target_group.backend_tg ]
 }
 
+resource "aws_lb_target_group" "jenkins_tg" {
+  name     = "jenkins-tg"
+  port     = 8080
+  protocol = "HTTP"
+  vpc_id   = var.vpc_id
+  target_type = "instance"
+
+  target_health_state {
+    enable_unhealthy_connection_termination = false
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  health_check {
+    path = "/"
+    matcher = "200,301,302"
+    
+  }
+  
+}
+
+resource "aws_lb_target_group_attachment" "jenkins_attachment" {
+  target_group_arn = aws_lb_target_group.jenkins_tg.arn
+  target_id        = data.aws_instance.jenkins-server.id   # 👈 specific instance
+  port             = 8080
+}
+
+resource "aws_lb_listener_rule" "jenkins_rule" {
+  listener_arn = aws_lb_listener.frontend_listener_http.arn
+  priority     = 102
+
+  action {
+    type = "forward"
+    target_group_arn = aws_lb_target_group.jenkins_tg.arn
+  }
+  
+  condition {
+    host_header {
+      values = ["jenkins.viharfood.in"]
+    }
+  }
+  depends_on = [ aws_lb_target_group.jenkins_tg ]
+}
+
+
+
 // ========================================Backend ALB and Target Group for API Server=========================
 
 // now we create private internael load balancer for backend server to allow traffic only from frontend server security group on port 8000 for API.
@@ -203,3 +261,4 @@ output "ecommerce_alb_dns" {
 output "ecommerce_alb_zone_id" {
   value = aws_lb.frontend_public_alb.zone_id
 }
+

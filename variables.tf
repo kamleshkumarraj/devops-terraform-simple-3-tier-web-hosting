@@ -129,3 +129,23 @@ variable "bucket_name" {
   description = "The name of the S3 bucket"
 }
 
+# variable "frontend_image_latest" {
+#   type = string
+#   description = "The region where the S3 bucket is located"
+# }
+
+# variable "backend_image_latest" {
+#   type = string
+#   description = "The name of the latest backend image"
+#   default = "ecommerce/backend-main:14"
+# }
+
+variable "ssm_param_arn_frontend" {
+  type = string
+  description = "The ARN of the SSM parameter for frontend"
+}
+
+variable "ssm_param_arn_backend" {
+  type = string
+  description = "The ARN of the SSM parameter for backend"
+}

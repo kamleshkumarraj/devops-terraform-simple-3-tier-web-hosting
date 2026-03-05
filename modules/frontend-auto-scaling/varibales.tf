@@ -44,7 +44,7 @@ variable "frontend_max_size" {
 
 variable "frontend_desired_capacity" {
   type = number
-  default = 1
+  default = 0
 }
 
 

@@ -38,3 +38,13 @@ variable "bucket_arn" {
   type = string
   description = "The ARN of the S3 bucket to which EC2 instances will upload data"
 }
+
+variable "ssm_param_arn_frontend" {
+  type = string
+  description = "The ARN of the SSM parameter for frontend"
+}
+
+variable "ssm_param_arn_backend" {
+  type = string
+  description = "The ARN of the SSM parameter for backend"
+}
