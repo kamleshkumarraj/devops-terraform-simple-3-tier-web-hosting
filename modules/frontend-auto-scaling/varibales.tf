@@ -50,7 +50,7 @@ variable "frontend_desired_capacity" {
 
 variable "health_check_gp" {
   type = number
-  default = 300
+  default = 600
 }
 
 variable "health_check_type" {

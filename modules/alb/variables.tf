@@ -26,3 +26,17 @@ variable "backend_cidr_blocks" {
   type = list(string)
   description = "The CIDR blocks allowed to access the backend ALB"
 }
+
+variable "domain_name" {
+  description = "Domain for SSL certificate"
+  type        = string
+  default = "viharfood.in"
+}
+
+variable "zone_id" {
+  description = "Route53 hosted zone id"
+  type        = string
+  default = "Z05892463BEMCWHVXXLAS"
+}
+
+

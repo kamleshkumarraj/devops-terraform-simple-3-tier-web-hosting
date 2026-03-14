@@ -171,10 +171,13 @@ resource "aws_autoscaling_group" "ecommerce_frontend_asg" {
       min_healthy_percentage = 100
       max_healthy_percentage = 200
     
-      instance_warmup        = 120
+      instance_warmup        = 300
     }
   }
 
+  
+
+  
   # tag {
   #   key                 = "foo"
   #   value               = "bar"
